@@ -47,19 +47,19 @@ def run():
 
     methods = [OpenCV.TM_CCOEFF,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_CCORR,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_SQDIFF,OpenCV.TM_SQDIFF_NORMED]
 
-    for method in methods:        
-        world2 = world.copy()
+           
+    world2 = world.copy()
 
-        result = OpenCV.matchTemplate(world2, d, method)
-        min_value, max_value, min_location, max_location = OpenCV.minMaxLoc(result)
-        print(max_value,max_location)
+    result = OpenCV.matchTemplate(world2, d, methods[1])
+    min_value, max_value, min_location, max_location = OpenCV.minMaxLoc(result)
+    print(max_value,max_location)
         
-        location = max_location
-        bottom_right = (location[0]+width,location[1]+height)
-        OpenCV.rectangle(world2, location, bottom_right, 255, 5)
-        OpenCV.imshow("Match", world2)
-        OpenCV.waitKey(0)
-        OpenCV.destroyAllWindows()
+    location = max_location
+    bottom_right = (location[0]+width,location[1]+height)
+    OpenCV.rectangle(world2, location, bottom_right, 255, 5)
+    OpenCV.imshow("Match", world2)
+    OpenCV.waitKey(0)
+    OpenCV.destroyAllWindows()
 
 
 
