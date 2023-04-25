@@ -1,9 +1,12 @@
-from PIL import ImageGrab
-import win32gui
-
-from ctypes import windll
 
 def run():
+
+    from PIL import ImageGrab
+    import win32gui
+
+    from ctypes import windll
+    import numpy
+    import cv2 as openCV
 
     user32 = windll.user32
     user32.SetProcessDPIAware()
@@ -23,7 +26,7 @@ def run():
     def screenshotWindow(hwnd):
         win32gui.SetForegroundWindow(hwnd)
         boundingBox = win32gui.GetWindowRect(hwnd)
-        print(boundingBox)
+        print("Bounding box of window:\t"+str(boundingBox))
         img = ImageGrab.grab(boundingBox)
 
         return img
