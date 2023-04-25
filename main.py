@@ -6,10 +6,16 @@ def run():
 
     from ctypes import windll
     import numpy
-    import cv2 as openCV
+    import cv2 as OpenCV
+    import mouse
 
     user32 = windll.user32
     user32.SetProcessDPIAware()
+
+    def PIL_to_OpenCV(img):
+        numpy_img = numpy.array(img)
+        #imshow("Numpy First", numpy_img)
+        return numpy_img
 
     def getHandleFromTitle(t, exact=False):
         toplist, windowList = [], []
@@ -33,10 +39,13 @@ def run():
     
     handle = getHandleFromTitle("avast")[0][0]
     image = screenshotWindow(handle)
-    image.show()
+    #image.show()
 
+    OpenCV.imshow("TITLE",PIL_to_OpenCV(image))
+    OpenCV.waitKey(0)
+    OpenCV.destroyAllWindows()
         
-
+    mouse.move(100,100,duration=0.5)
 
 
 
