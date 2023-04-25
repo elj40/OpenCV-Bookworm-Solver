@@ -43,6 +43,7 @@ def run():
 
     OpenCV.imshow("TITLE",PIL_to_OpenCV(image))
     OpenCV.waitKey(0)
+    OpenCV.imwrite("assets/tempScreen.png")
     OpenCV.destroyAllWindows()
         
     mouse.move(100,100,duration=0.5)
