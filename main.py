@@ -1,7 +1,13 @@
 from PIL import ImageGrab
 import win32gui
 
+from ctypes import windll
+
 def run():
+
+    user32 = windll.user32
+    user32.SetProcessDPIAware()
+
     def getHandleFromTitle(t, exact=False):
         toplist, windowList = [], []
         def getAllWindows(hwnd, results):
@@ -17,12 +23,13 @@ def run():
     def screenshotWindow(hwnd):
         win32gui.SetForegroundWindow(hwnd)
         boundingBox = win32gui.GetWindowRect(hwnd)
+        print(boundingBox)
         img = ImageGrab.grab(boundingBox)
 
         return img
     
-    handle = getHandleFromTitle("gvim")
-    image = screenshotWindow(getHandleFromTitle("gvim"))
+    handle = getHandleFromTitle("avast")[0][0]
+    image = screenshotWindow(handle)
     image.show()
 
         
