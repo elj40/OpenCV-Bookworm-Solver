@@ -17,6 +17,10 @@ def run():
 
     methods = [OpenCV.TM_CCOEFF,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_CCORR,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_SQDIFF,OpenCV.TM_SQDIFF_NORMED]
 
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    alphabetImages = []
+    for a in alphabet:
+        alphabetImages.append(OpenCV.imread("assets/"+a+".png",0))
     def PIL_to_OpenCV(img):
         numpy_img = numpy.array(img)
         cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2BGR)
@@ -44,8 +48,8 @@ def run():
         return img
 
     def getLettersShown(world, letterImg=0):
-
-        def getLetterImages(world):
+        
+        def getWorldLetterImages(world):
             images = []
             for i in range(4):
                 x = 380 + 64*i
@@ -57,26 +61,28 @@ def run():
                     index += 1
             return images
 
-        screenLetters = getLetterImages(world)
-        i = OpenCV.imread("assets/I.png", 0)
-        for sL in screenLetters:
-            result = OpenCV.matchTemplate(sL, i,methods[3])
-            min_v, max_v, min_loc, max_loc = OpenCV.minMaxLoc(result)
-            print(max_v)
-            OpenCV.imshow("d",sL)
-        
-            OpenCV.waitKey(0)
-            OpenCV.destroyAllWindows()
+        screenLetters = getWorldLetterImages(world)
+        i = 0
+        lettersCollected = ""
+        for l in alphabetImages:            
+            for sL in screenLetters:
+                result = OpenCV.matchTemplate(sL, l,methods[3])
+                min_v, max_v, min_loc, max_loc = OpenCV.minMaxLoc(result)
+                print(max_v)
+                if max_v > 0.95:
+                    lettersCollecter += alphabet[i]
+            i += 1
+
+        return lettersCollected
 
 
     
-    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     world = OpenCV.imread("assets/tempScreen.png", 0)
     d = OpenCV.imread("assets/D.png", 0)
 
     height, width = d.shape
-
-    getLettersShown(world)
+    print(len(alphabetImages))
+    print(getLettersShown(world))
     
            
     world2 = world.copy()
