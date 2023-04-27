@@ -3,6 +3,7 @@ def run():
 
     from PIL import ImageGrab
     import win32gui
+    import win32com.client
 
     from ctypes import windll
     import numpy
@@ -45,6 +46,10 @@ def run():
         else:
             return [(hwnd,title) for hwnd, title in windowList if t in title.lower()]
 
+    def switchWindow(hwnd):
+        shell = win32com.client.Dispatch("WScript.Shell")
+        shell.SendKeys('%')
+        win32gui.SetForegroundWindow(hwnd)
 
     def screenshotWindow(hwnd):
         win32gui.SetForegroundWindow(hwnd)
@@ -56,8 +61,8 @@ def run():
         return (img, boundingBox)
 
     def getAttackPixel():
-        x = attack_button_position[0]
-        y = attack_button_position[1]
+        x = attack_button_position[0] + world_pos[0]
+        y = attack_button_position[1] + world_pos[0]
 
         bBox = (x,y,x+1,y+1)
 
@@ -124,45 +129,87 @@ def run():
         x = (i-y) / 4
         return (int(x*64),int(y*64))
 
+    def removeWord(word):
+        i = allWords.index(word.lower()+"\n")
+        del allWords[i]
+        f = open("english_words_edited.txt", "w")
+
+        for w in allWords:
+            if len(w) > 3:
+                f.write(w)
+
+        f.close
+
+    def cancelWord():
+        x = 225 + world_pos[0]
+        y = 225 + world_pos[1]
+        bBox = (x,y,x+400,y+1)
+
+        img = ImageGrab.grab(bBox)
+        img = PIL_to_OpenCV(img)
+
+        line = img[0]
+        
+        for br in line:
+            x += 1
+            if br > 215:
+                mouse.move(x,y,duration = 0.1)
+                mouse.click('left')
+                break
+
+
             
     # use [string].strip() to remove \n at the end
-    handle = getHandleFromTitle("adventures")[0][0]
-    world, world_pos = screenshotWindow(handle)
+    bookworm_handle = getHandleFromTitle("adventures")[0][0]
+    ps_handle = getHandleFromTitle("powershell")[0][0]
 
-    world = PIL_to_OpenCV(world)
-    
+    print(ps_handle,bookworm_handle)
+    while True:
+        world, world_pos = screenshotWindow(bookworm_handle)
 
-    worldLetters, letterPositions =getLettersShown(world)
-    worldLetters_copy = (worldLetters+" ").strip()
-    
-    filtered_words = getFilteredWords(worldLetters)
-    filtered_words.sort( key=len)
-
-    print(filtered_words[-10:])
-    
-    longest_word = filtered_words[-1]
-    
-    for l in longest_word:
-        index = worldLetters_copy.find(l)
-        index = letterPositions[index]
-        worldLetters_copy = worldLetters_copy.replace(l," ",1)
+        world = PIL_to_OpenCV(world)
         
-        x,y = getCoordsFromIndex(index)
 
-        x += first_tile_position[0]
-        y += first_tile_position[1]
-        print(x,y, l, index,worldLetters_copy)
+        worldLetters, letterPositions =getLettersShown(world)
+        
+        filtered_words = getFilteredWords(worldLetters)
+        filtered_words.sort( key=len)
 
-        mouse.move(world_pos[0]+x,world_pos[1]+y,duration=0.2)
-        mouse.click("left")
-    
-    #time.sleep(5)
-    attack_pixel = getAttackPixel()[0][0]
-    print(attack_pixel)
+        
+        worldLetters_copy = (worldLetters+" ").strip()
+        longest_word = filtered_words[-1]
+        pl = ""
+        for l in longest_word:
+            if pl == 'Q':
+                continue
+            index = worldLetters_copy.find(l)
+            index = letterPositions[index]
+            worldLetters_copy = worldLetters_copy.replace(l," ",1)
+            
+            x,y = getCoordsFromIndex(index)
 
-    if attck_pixel > 150:
-        mouse.move(attack_button_position[0],attack_button_position[1], duration=0.1)
+            x += first_tile_position[0]
+            y += first_tile_position[1]
+            #print(x,y, l, index,worldLetters_copy)
 
+            mouse.move(world_pos[0]+x,world_pos[1]+y,duration=0.1)
+            mouse.click("left")
+            pl = l
+            
+        attack_pixel = getAttackPixel()[0][0]
+        print(attack_pixel)
+
+        if attack_pixel > 155:
+            mouse.move(attack_button_position[0],attack_button_position[1], duration=0.1)
+            mouse.click('left')
+            switchWindow(ps_handle)
+            input("GO?")
+            switchWindow(bookworm_handle)
+        else:
+            print("Removed word: "+longest_word)
+            removeWord(longest_word)
+            del filtered_words[-1]
+            cancelWord()
 
 
 
