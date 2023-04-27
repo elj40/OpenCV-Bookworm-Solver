@@ -32,8 +32,32 @@ def run():
         alphabetImages.append(OpenCV.imread("assets/"+a+".png",0))
     def PIL_to_OpenCV(img):
         numpy_img = numpy.array(img)
-        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2GRAY)
+        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2BGR)
+
+        cv_image = cv_image[:,:,0]
+
+    def PIL_to_OpenCV_RGB(img):
+        numpy_img = numpy.array(img)
+        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2BGR)
+
+        b = cv_image[:,:,0]
+        g = cv_image[:,:,1]
+        r = cv_image[:,:,2]
+
+
+        return b,g,r
+
+    def PIL_to_OpenCV(img):
+        numpy_img = numpy.array(img)
+        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2BGR)
+
+        cv_image = cv_image[:,:,0]
+
         return cv_image
+
+
+
+
 
     def getHandleFromTitle(t, exact=False):
         toplist, windowList = [], []
@@ -84,23 +108,35 @@ def run():
                     index += 1
             return images
 
-        screenLetters = getWorldLetterImages(world)
-        positions=[]
-        i = 0
-        j=0
-        lettersCollected = ""
-        for l in alphabetImages:            
-            for sL in screenLetters:
-                result = OpenCV.matchTemplate(sL, l,methods[3])
+        def matchImages(current, images, i):
+            j = 0
+            letters = ""
+           
+            for img in images:
+                result = OpenCV.matchTemplate(img,current, methods[3])
                 min_v, max_v, min_loc, max_loc = OpenCV.minMaxLoc(result)
-                if max_v > 0.93:
-                    lettersCollected += alphabet[i]
+                if max_v > 0.90 and j not in positions:
+                    letters+= alphabet[i]
                     positions.append(j)
 
                 j += 1
             i += 1
-            j = 0
-        print(lettersCollected)
+            return letters
+
+        b_images = getWorldLetterImages(world[0])
+        g_images = getWorldLetterImages(world[1])
+        r_images = getWorldLetterImages(world[2])
+
+        positions=[]
+        i = 0
+        lettersCollected = ""
+
+        for l in alphabetImages:            
+            lettersCollected += matchImages(l, b_images, i)
+            lettersCollected += matchImages(l, g_images, i)
+            lettersCollected += matchImages(l, r_images, i)
+            i += 1;
+        print(lettersCollected, positions)
         return lettersCollected,positions
     
 
@@ -163,68 +199,13 @@ def run():
     bookworm_handle = getHandleFromTitle("adventures")[0][0]
     ps_handle = getHandleFromTitle("powershell")[0][0]
 
-    print(ps_handle,bookworm_handle)
-    while True:
-        world, world_pos = screenshotWindow(bookworm_handle)
 
-        world = PIL_to_OpenCV(world)
-        
-
-        worldLetters, letterPositions =getLettersShown(world)
-        
-        filtered_words = getFilteredWords(worldLetters)
-        filtered_words.sort( key=len)
-
-        
-        worldLetters_copy = (worldLetters+" ").strip()
-        longest_word = filtered_words[-1]
-        pl = ""
-        for l in longest_word:
-            index = worldLetters_copy.find(l)
-            index = letterPositions[index]
-            worldLetters_copy = worldLetters_copy.replace(l," ",1)
-            
-            if pl == 'Q' and l=='U':
-                continue
-            x,y = getCoordsFromIndex(index)
-
-            x += first_tile_position[0]
-            y += first_tile_position[1]
-            #print(x,y, l, index,worldLetters_copy)
-
-            mouse.move(world_pos[0]+x,world_pos[1]+y,duration=0.05)
-            mouse.click("left")
-            pl = l
-            
-        time.sleep(0.1)
-        attack_pixel = getAttackPixel()[0][0]
-        print(attack_pixel)
-
-        if attack_pixel > 155:
-            mouse.move(attack_button_position[0],attack_button_position[1], duration=0.1)
-            mouse.click('left')
-            time.sleep(5)
-            switchWindow(ps_handle)
-
-            choice = input("GO? ")
-            if choice == "n":
-                quit()
-            while choice == " ":
-                switchWindow(bookworm_handle)
-                time.sleep(4)
-                switchWindow(ps_handle)
-                choice = input("GO? ")
-
-            switchWindow(bookworm_handle)
-        else:
-            print("Removed word: "+longest_word)
-            removeWord(longest_word)
-            del filtered_words[-1]
-            cancelWord()
-
-
-
-
+    world, world_pos = screenshotWindow(bookworm_handle)
+    world = PIL_to_OpenCV_RGB(world)
+    
+    getLettersShown(world)
+    
+    OpenCV.waitKey(0)
 
 
 
