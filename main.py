@@ -11,9 +11,14 @@ def run():
 
     import time
 
+    import re
+
     user32 = windll.user32
     user32.SetProcessDPIAware()
-
+    
+    wordsFile = open("english_words_edited.txt", "r")
+    allWords = wordsFile.readlines()
+    wordsFile.close()
 
     methods = [OpenCV.TM_CCOEFF,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_CCORR,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_SQDIFF,OpenCV.TM_SQDIFF_NORMED]
 
@@ -68,33 +73,47 @@ def run():
             for sL in screenLetters:
                 result = OpenCV.matchTemplate(sL, l,methods[3])
                 min_v, max_v, min_loc, max_loc = OpenCV.minMaxLoc(result)
-                print(max_v)
                 if max_v > 0.95:
                     lettersCollected += alphabet[i]
             i += 1
 
         return lettersCollected
+    
+
+    def getFilteredWords(screenLetters):
+        f_words = []
+        for word in allWords:
+            w = word.strip().upper()
+            if isWordValid(w,screenLetters):
+                f_words.append(w)
+
+        return f_words
+
+    def isWordValid(word,letters) :
+        for l in word:
+            v1 = re.findall(l,word)
+            v2 = re.findall(l,letters)
 
 
+            if len(v1) > len(v2):
+               return False
+
+        return True
+
+            
+    # use [string].strip() to remove \n at the end
     
     world = OpenCV.imread("assets/tempScreen.png", 0)
-    d = OpenCV.imread("assets/D.png", 0)
 
-    height, width = d.shape
-    print(len(alphabetImages))
-    print(getLettersShown(world))
+    worldLetters =getLettersShown(world)
+
+    filtered_words = getFilteredWords(worldLetters)
+
+    print(len(filtered_words),len(allWords))
+    print(filtered_words)
     
-           
-    world2 = world.copy()
 
-    result = OpenCV.matchTemplate(world2, d, methods[1])
-    (yPosList, xPosList) = numpy.where(result >= 0.97)
-    print(xPosList)
-        
-    #location = max_location
-    #bottom_right = (location[0]+width,location[1]+height)
-    #OpenCV.rectangle(world2, location, bottom_right, 255, 5)
-    OpenCV.imshow("Match", world2)
+    OpenCV.imshow("Match", world)
     OpenCV.waitKey(0)
     OpenCV.destroyAllWindows()
 
