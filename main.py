@@ -30,11 +30,12 @@ def run():
     alphabetImages = []
     for a in alphabet:
         alphabetImages.append(OpenCV.imread("assets/"+a+".png",0))
+
     def PIL_to_OpenCV(img):
         numpy_img = numpy.array(img)
-        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2BGR)
+        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2GRAY)
 
-        cv_image = cv_image[:,:,0]
+        return cv_image
 
     def PIL_to_OpenCV_RGB(img):
         numpy_img = numpy.array(img)
@@ -46,17 +47,6 @@ def run():
 
 
         return b,g,r
-
-    def PIL_to_OpenCV(img):
-        numpy_img = numpy.array(img)
-        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2BGR)
-
-        cv_image = cv_image[:,:,0]
-
-        return cv_image
-
-
-
 
 
     def getHandleFromTitle(t, exact=False):
@@ -122,7 +112,7 @@ def run():
                 j += 1
             i += 1
             return letters
-
+  
         b_images = getWorldLetterImages(world[0])
         g_images = getWorldLetterImages(world[1])
         r_images = getWorldLetterImages(world[2])
@@ -177,7 +167,7 @@ def run():
         f.close
 
     def cancelWord():
-        x = 225 + world_pos[0]
+        x = 270 + world_pos[0]
         y = 225 + world_pos[1]
         bBox = (x,y,x+400,y+1)
 
@@ -188,7 +178,7 @@ def run():
         
         for br in line:
             x += 1
-            if br > 150:
+            if br > 200:
                 mouse.move(x,y,duration = 0.1)
                 mouse.click('left')
                 break
@@ -210,56 +200,61 @@ def run():
     
 
         worldLetters, letterPositions =getLettersShown(world)
-        
+        inRound = True
         filtered_words = getFilteredWords(worldLetters)
         filtered_words.sort( key=len)
 
-        
-        worldLetters_copy = (worldLetters+" ").strip()
-        longest_word = filtered_words[-1]
-        pl = ""
-        for l in longest_word:
-            index = worldLetters_copy.find(l)
-            index = letterPositions[index]
-            worldLetters_copy = worldLetters_copy.replace(l," ",1)
+        while inRound: 
+
             
-            if pl == 'Q' and l=='U':
-                continue
-            x,y = getCoordsFromIndex(index)
+            worldLetters_copy = (worldLetters+" ").strip()
+            longest_word = filtered_words[-1]
+            print("Current Word: "+longest_word)
+            pl = ""
+            for l in longest_word:
+                index = worldLetters_copy.find(l)
+                index = letterPositions[index]
+                worldLetters_copy = worldLetters_copy.replace(l," ",1)
+                
+                if pl == 'Q' and l=='U':
+                    continue
+                x,y = getCoordsFromIndex(index)
 
-            x += first_tile_position[0]
-            y += first_tile_position[1]
-            #print(x,y, l, index,worldLetters_copy)
+                x += first_tile_position[0]
+                y += first_tile_position[1]
+                #print(x,y, l, index,worldLetters_copy)
 
-            mouse.move(world_pos[0]+x,world_pos[1]+y,duration=0.05)
-            mouse.click("left")
-            pl = l
-            
-        time.sleep(0.1)
-        attack_pixel = getAttackPixel()[0][0]
-        print(attack_pixel)
+                mouse.move(world_pos[0]+x,world_pos[1]+y,duration=0.05)
+                mouse.click("left")
+                pl = l
+                
+            time.sleep(0.1)
+            attack_pixel = getAttackPixel()[0][0]
 
-        if attack_pixel > 155:
-            mouse.move(attack_button_position[0],attack_button_position[1], duration=0.1)
-            mouse.click('left')
-            time.sleep(5)
-            switchWindow(ps_handle)
-
-            choice = input("GO? ")
-            if choice == "n":
-                quit()
-            while choice == " ":
-                switchWindow(bookworm_handle)
-                time.sleep(4)
+            if attack_pixel > 155:
+                mouse.move(attack_button_position[0],attack_button_position[1], duration=0.1)
+                mouse.click('left')
+                time.sleep(5)
                 switchWindow(ps_handle)
-                choice = input("GO? ")
 
-            switchWindow(bookworm_handle)
-        else:
-            print("Removed word: "+longest_word)
-            removeWord(longest_word)
-            del filtered_words[-1]
-            cancelWord()
+                choice = input("GO? ")
+                if choice == "n":
+                    quit()
+                while choice == " ":
+                    switchWindow(bookworm_handle)
+                    time.sleep(4)
+                    switchWindow(ps_handle)
+                    choice = input("GO? ")
+
+                switchWindow(bookworm_handle)
+
+                inRound = False
+            else:
+                print("Removed word: "+longest_word)
+                removeWord(longest_word)
+                del filtered_words[-1]
+                cancelWord()
+                time.sleep(0.1)
 
 
 
