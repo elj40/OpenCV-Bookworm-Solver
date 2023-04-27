@@ -79,14 +79,6 @@ def run():
 
         return lettersCollected
     
-    def getInverseLetters(letters):
-        tmp = ""
-        tester = "["+letters+"]"
-        for l in alphabet:
-            if not re.match(tester, l):
-                tmp += l
-
-        return tmp
 
     def getFilteredWords(screenLetters):
         f_words = []
@@ -112,13 +104,9 @@ def run():
     # use [string].strip() to remove \n at the end
     
     world = OpenCV.imread("assets/tempScreen.png", 0)
-    d = OpenCV.imread("assets/D.png", 0)
 
-    height, width = d.shape
     worldLetters =getLettersShown(world)
 
-    print(len(allWords))
-    inverseLetters = getInverseLetters(worldLetters)
     filtered_words = getFilteredWords(worldLetters)
 
     print(len(filtered_words),len(allWords))

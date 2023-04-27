@@ -110,9 +110,10 @@ def run():
     filtered_words = getFilteredWords(worldLetters)
 
     print(len(filtered_words),len(allWords))
-    world2 = world.copy()
+    print(filtered_words)
+    
 
-    OpenCV.imshow("Match", world2)
+    OpenCV.imshow("Match", world)
     OpenCV.waitKey(0)
     OpenCV.destroyAllWindows()
 
