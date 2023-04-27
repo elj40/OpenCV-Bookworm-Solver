@@ -20,6 +20,9 @@ def run():
     allWords = wordsFile.readlines()
     wordsFile.close()
 
+    first_tile_position = (420, 460)
+    attack_button_postion = (415,740)
+
     methods = [OpenCV.TM_CCOEFF,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_CCORR,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_SQDIFF,OpenCV.TM_SQDIFF_NORMED]
 
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -28,7 +31,7 @@ def run():
         alphabetImages.append(OpenCV.imread("assets/"+a+".png",0))
     def PIL_to_OpenCV(img):
         numpy_img = numpy.array(img)
-        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2BGR)
+        cv_image = OpenCV.cvtColor(numpy_img, OpenCV.COLOR_RGB2GRAY)
         return cv_image
 
     def getHandleFromTitle(t, exact=False):
@@ -45,12 +48,12 @@ def run():
 
     def screenshotWindow(hwnd):
         win32gui.SetForegroundWindow(hwnd)
-        time.sleep(0.5)
+        time.sleep(0.2)
         boundingBox = win32gui.GetWindowRect(hwnd)
         print("Bounding box of window:\t"+str(boundingBox))
         img = ImageGrab.grab(boundingBox)
 
-        return img
+        return (img, boundingBox)
 
     def getLettersShown(world, letterImg=0):
         
@@ -67,17 +70,23 @@ def run():
             return images
 
         screenLetters = getWorldLetterImages(world)
+        positions=[]
         i = 0
+        j=0
         lettersCollected = ""
         for l in alphabetImages:            
             for sL in screenLetters:
                 result = OpenCV.matchTemplate(sL, l,methods[3])
                 min_v, max_v, min_loc, max_loc = OpenCV.minMaxLoc(result)
-                if max_v > 0.95:
+                if max_v > 0.93:
                     lettersCollected += alphabet[i]
-            i += 1
+                    positions.append(j)
 
-        return lettersCollected
+                j += 1
+            i += 1
+            j = 0
+        print(lettersCollected)
+        return lettersCollected,positions
     
 
     def getFilteredWords(screenLetters):
@@ -100,22 +109,48 @@ def run():
 
         return True
 
+    def getCoordsFromIndex(i):
+        y = i % 4
+        x = (i-y) / 4
+        return (int(x*64),int(y*64))
+
             
     # use [string].strip() to remove \n at the end
-    
-    world = OpenCV.imread("assets/tempScreen.png", 0)
+    handle = getHandleFromTitle("adventures")[0][0]
+    world, world_pos = screenshotWindow(handle)
 
-    worldLetters =getLettersShown(world)
+    world = PIL_to_OpenCV(world)
+    
+
+    worldLetters, letterPositions =getLettersShown(world)
+    worldLetters_copy = (worldLetters+" ").strip()
+    
 
     filtered_words = getFilteredWords(worldLetters)
+    filtered_words.sort( key=len)
 
     print(len(filtered_words),len(allWords))
-    print(filtered_words)
+    print(filtered_words[-10:])
+    
+    longest_word = filtered_words[-1]
     
 
-    OpenCV.imshow("Match", world)
-    OpenCV.waitKey(0)
-    OpenCV.destroyAllWindows()
+    mouse.move(world_pos[0], world_pos[1])
+    
+    for l in longest_word:
+        index = worldLetters_copy.find(l)
+        index = letterPositions[index]
+        worldLetters_copy = worldLetters_copy.replace(l," ",1)
+        
+        x,y = getCoordsFromIndex(index)
+
+        x += first_tile_position[0]
+        y += first_tile_position[1]
+        print(x,y, l, index,worldLetters_copy)
+
+        mouse.move(world_pos[0]+x,world_pos[1]+y,duration=0.2)
+        mouse.click("left")
+        #time.sleep(0.2)
 
 
 
