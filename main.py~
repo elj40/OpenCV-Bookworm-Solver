@@ -152,7 +152,7 @@ def run():
         
         for br in line:
             x += 1
-            if br == 0:
+            if br > 150:
                 mouse.move(x,y,duration = 0.1)
                 mouse.click('left')
                 break

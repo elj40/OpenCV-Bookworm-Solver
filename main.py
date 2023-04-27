@@ -164,6 +164,10 @@ def run():
     ps_handle = getHandleFromTitle("powershell")[0][0]
 
     print(ps_handle,bookworm_handle)
+
+
+
+
     while True:
         world, world_pos = screenshotWindow(bookworm_handle)
 
