@@ -21,6 +21,7 @@ def run():
     wordsFile.close()
 
     first_tile_position = (420, 460)
+    attack_button_position = (415,740)
 
     methods = [OpenCV.TM_CCOEFF,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_CCORR,OpenCV.TM_CCOEFF_NORMED,OpenCV.TM_SQDIFF,OpenCV.TM_SQDIFF_NORMED]
 
@@ -53,6 +54,16 @@ def run():
         img = ImageGrab.grab(boundingBox)
 
         return (img, boundingBox)
+
+    def getAttackPixel():
+        x = attack_button_position[0]
+        y = attack_button_position[1]
+
+        bBox = (x,y,x+1,y+1)
+
+        img = ImageGrab.grab(bBox)
+        return PIL_to_OpenCV(img)
+
 
     def getLettersShown(world, letterImg=0):
         
@@ -124,17 +135,12 @@ def run():
     worldLetters, letterPositions =getLettersShown(world)
     worldLetters_copy = (worldLetters+" ").strip()
     
-
     filtered_words = getFilteredWords(worldLetters)
     filtered_words.sort( key=len)
 
-    print(len(filtered_words),len(allWords))
     print(filtered_words[-10:])
     
     longest_word = filtered_words[-1]
-    
-
-    mouse.move(world_pos[0], world_pos[1])
     
     for l in longest_word:
         index = worldLetters_copy.find(l)
@@ -149,7 +155,13 @@ def run():
 
         mouse.move(world_pos[0]+x,world_pos[1]+y,duration=0.2)
         mouse.click("left")
-        #time.sleep(0.2)
+    
+    #time.sleep(5)
+    attack_pixel = getAttackPixel()[0][0]
+    print(attack_pixel)
+
+    if attck_pixel > 150:
+        mouse.move(attack_button_position[0],attack_button_position[1], duration=0.1)
 
 
 
